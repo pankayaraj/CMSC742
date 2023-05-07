@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-grid = torch.load("2.1/results/with_eps_greedy/1/occu")
+grid = torch.load("2.1/results/oir_ours/1/occu_3")
 # Create a 2D array
 data = np.array(grid)
 
@@ -37,7 +37,8 @@ ax.set_ylabel('Y')
 ax.set_zlabel('Occupancy Measure')
 ax.set_zlim(0,0.05)
 
-ax.set_title("esp_decay = 0.99", fontsize = 30)
+ax.set_title("esp_decay = 0.99 + OIR + OUR bound, penalty= -10", fontsize = 15)
 # Show the plot
+
 plt.show()
-#plt.savefig("2.1/figures/0/esp_g_occ_0.png")
+#plt.savefig("2.1/figures/oir_ours/esp_oir_ours_3.png")

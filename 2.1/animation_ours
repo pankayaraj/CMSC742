@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from mpl_toolkits.mplot3d import Axes3D
+import torch
+
+z1 = torch.load("2.1/results/oir_ours/1/occu_1")
+z2 = torch.load("2.1/results/oir_ours/1/occu_2")
+z3 = torch.load("2.1/results/oir_ours/1/occu_3")
+# Create a 2D array
+data = np.array(z1)
+
+
+z1 = np.array(z1)
+z2 = np.array(z2)
+z3 = np.array(z3)
+
+z1 = z1/np.sum(z1)
+z2 = z2/np.sum(z2)
+z3 = z3/np.sum(z3)
+
+# Define x and y coordinates
+x = np.arange(data.shape[1])
+y = np.arange(data.shape[0])
+
+X, Y = np.meshgrid(x, y)
+# Create a figure and axis for the animation
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Define a function to update the plot for each frame of the animation
+def update(frame):
+    # Clear the previous plot
+    ax.clear()
+
+    # Compute the interpolated heatmap for this frame
+    t = frame / 4
+    z = (1-t)*z1 + t*(z2 if frame < 10 else z3)
+    #z = z3
+
+    #if frame <= 4:
+    #    z = z1
+    #elif frame <= 8:
+    #    z = z2
+    #else:
+    #    z = z3
+    # Plot the interpolated heatmap as a surface
+    ax.plot_surface(X, Y, z, cmap='viridis')
+    
+    
+
+    # Set the plot limits and labels
+    #ax.set_xlim(0, 1)
+    #ax.set_ylim(0, 1)
+    #ax.set_zlim(np.min([z1, z2, z3]), np.max([z1, z2, z3]))
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    # Set the title to indicate the current frame number
+    ax.set_title('Frame {}'.format(frame))
+
+# Create the animation object and show the plot
+ani = FuncAnimation(fig, update, frames=12, )
+plt.show()

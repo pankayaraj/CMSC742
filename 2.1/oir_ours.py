@@ -5,6 +5,7 @@ from util.memory import Replay_Memory
 import numpy as np
 from util.epsilon_greedy import epsilon_greedy
 from math import log
+import bisect 
 
 class OIR():
 
@@ -25,6 +26,7 @@ class OIR():
         self.num_z = 2
 
         self.grid = [[0 for i in range(10)] for j in range(10)]
+        self.T = 0
 
         self.Q = Discrete_Q_Function_NN(nn_params=q_nn_param,
                                         save_path= self.save_path.q_path, load_path=self.load_path.q_path,)
@@ -42,6 +44,27 @@ class OIR():
         self.memory_capacity = memory_capacity
         self.batch_size = batch_size
         self.env = env
+
+
+
+    def find_max(self, n=10):
+        
+        max = []
+        states = {}
+        for i in range(10):
+            for j in range(10):
+                if len(max) < n:
+                    bisect.insort(max, self.grid[i][j])
+                    states[self.grid[i][j]] = (i,j)
+
+                elif max[0] < self.grid[i][j]:
+                    max.pop(0)
+                    bisect.insort(max, self.grid[i][j])
+                    states[self.grid[i][j]] = (i,j)
+                else:
+                    pass
+    
+        return max, states
 
 
 
@@ -68,10 +91,25 @@ class OIR():
 
         #adding the entropy term
         self.grid[state[1]][state[0]] += 1  
-        occupancy = np.array(self.grid)/np.sum(np.array(self.grid))
-        alternative_reward = -log(occupancy[state[1]][state[0]])
-        reward = reward + 0.5*alternative_reward
+        self.T += 1
 
+        occupancy = np.array(self.grid)/np.sum(np.array(self.grid))
+        alternative_reward_1 = -log(occupancy[state[1]][state[0]])
+
+        a, s_ = self.find_max(10)
+        b = np.sum(a)/self.T
+        
+        alternative_reward_2 = 0
+        i_ = next_state[0]
+        j_ = next_state[1]
+
+        if b > 0.2:
+            if (i_, j_) in list(s_.values()):
+                alternative_reward_2 = -10
+
+        
+        reward = reward + 0.5*alternative_reward_1 + 0.5*alternative_reward_2
+        #reward = reward + 0.5*alternative_reward_1
         #converting the action for buffer as one hot vector
         sample_hot_vec = np.array([0.0 for i in range(self.q_nn_param.action_dim)])
         sample_hot_vec[action] = 1
